@@ -1,6 +1,6 @@
 // Trait for processing actions in a State
 pub trait State<'a, SM> {
-    fn process(&self, sm: &'a mut SM);
+    fn process(&self, sm: &'a mut SM) -> &'a mut SM;
 }
 
 // Switch state machine
@@ -13,9 +13,11 @@ struct SwitchSm<'a> {
 struct StateOff;
 
 impl<'a> State<'a, SwitchSm<'a>> for StateOff {
-    fn process(&self, sm: &'a mut SwitchSm<'a>) {
+    fn process(&self, sm: &'a mut SwitchSm<'a>) -> &'a mut SwitchSm<'a> {
         sm.light_on = false;
         println!("light is off");
+
+        sm
     }
 }
 
@@ -30,7 +32,7 @@ fn main() {
     };
 
     // Process
-    switch.current_state.process(&mut switch);
+    let switch = switch.current_state.process(&mut switch);
 
     // Validate
     assert!(switch.light_on == false);
