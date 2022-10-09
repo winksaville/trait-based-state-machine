@@ -5,8 +5,7 @@ pub trait State<SM> {
 
 // Switch state machine
 struct SwitchSm<'a> {
-    current_state: &'a dyn  State<SwitchSm<'a>>,
-    //current_state: &'a dyn for<'sm> State<SwitchSm<'a>>,
+    current_state: &'a dyn State<SwitchSm<'a>>,
     light_on: bool,
 }
 
@@ -34,5 +33,5 @@ fn main() {
     switch.current_state.process(&mut switch);
 
     // Validate
-    assert!(switch.light_on == false);
+    assert!(!switch.light_on);
 }
