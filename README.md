@@ -2,29 +2,19 @@
 
 Experiment with traits for implementing a state machine
 
-This is currently failing with:
+Initially this failed but after creating a thread on discord
+titled [`State Machine with traits`](https://discord.com/channels/273534239310479360/1028428961937641592)
+and using [bruh![moments] two lifetime suggestion](https://discord.com/channels/273534239310479360/1028428961937641592/1028458390306947132)
+it does work! This is much better than my original solution which
+is in branch [return sm from process](https://github.com/winksaville/trait-based-state-machine/tree/return-sm-from-process).
 
 ```
 $ cargo run
-   Compiling expr-traits-1 v0.1.0 (/home/wink/prgs/rust/myrepos/exper-traits-1)
-error[E0503]: cannot use `switch.light_on` because it was mutably borrowed
-  --> src/main.rs:36:13
-   |
-33 |     switch.current_state.process(&mut switch);
-   |                                  ----------- borrow of `switch` occurs here
-...
-36 |     assert!(switch.light_on == false);
-   |             ^^^^^^^^^^^^^^^
-   |             |
-   |             use of borrowed `switch`
-   |             borrow later used here
-
-For more information about this error, try `rustc --explain E0503`.
-error: could not compile `expr-traits-1` due to previous error
+   Compiling trait-based-state-machine v0.1.0 (/home/wink/prgs/rust/myrepos/trait-based-state-machine)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.27s
+     Running `target/debug/trait-based-state-machine`
+light is off
 ```
-
-I can get it working by having State::Process return &'a mut SM, see
-https://github.com/winksaville/trait-based-state-machine/tree/return-sm-from-process
 
 ## License
 

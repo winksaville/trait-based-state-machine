@@ -5,15 +5,15 @@ pub trait State<'a, SM> {
 
 // Switch state machine
 struct SwitchSm<'a> {
-    current_state: &'a dyn State<'a, SwitchSm<'a>>,
+    current_state: &'a dyn for<'sm> State<'sm, SwitchSm<'a>>,
     light_on: bool,
 }
 
 // State off
 struct StateOff;
 
-impl<'a> State<'a, SwitchSm<'a>> for StateOff {
-    fn process(&self, sm: &'a mut SwitchSm<'a>) {
+impl<'a, 'sm> State<'sm, SwitchSm<'a>> for StateOff {
+    fn process(&self, sm: &'sm mut SwitchSm<'a>) {
         sm.light_on = false;
         println!("light is off");
     }
