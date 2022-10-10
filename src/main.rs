@@ -5,6 +5,16 @@ pub trait State<SM, P> {
 
 type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
 
+impl PartialEq for StateRef<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
 enum Protocol1 {
     On,
     Off,
@@ -61,4 +71,7 @@ fn main() {
     switch.current_state.process(&mut switch, &msg_on);
     switch.current_state.process(&mut switch, &msg_off);
     switch.current_state.process(&mut switch, &msg_toggle);
+
+    // Validate
+    assert!(switch.current_state == &StateOn);
 }

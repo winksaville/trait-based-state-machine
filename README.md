@@ -23,6 +23,16 @@ pub trait State<SM, P> {
 
 type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
 
+impl PartialEq for StateRef<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
 enum Protocol1 {
     On,
     Off,
@@ -61,7 +71,6 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
             }
             Protocol1::On => (),
         }
-
     }
 }
 
@@ -71,7 +80,7 @@ fn main() {
         current_state: &StateOff,
     };
 
-    // Create Message
+    // Create Messages
     let msg_off = Protocol1::Off;
     let msg_on = Protocol1::On;
     let msg_toggle = Protocol1::Toggle;
@@ -80,18 +89,25 @@ fn main() {
     switch.current_state.process(&mut switch, &msg_on);
     switch.current_state.process(&mut switch, &msg_off);
     switch.current_state.process(&mut switch, &msg_toggle);
+
+    // Validate
+    assert!(switch.current_state == &StateOn);
 }
 ```
 
-And it runs just fine:
+But if I have the `assert!` enabled the stack overflows:
 ```
 $ cargo run
    Compiling trait-based-state-machine v0.3.0 (/home/wink/prgs/rust/myrepos/trait-based-state-machine)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.13s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.27s
      Running `target/debug/trait-based-state-machine`
 StateOff: light is ON
 StateOn:  light is OFF
 StateOff: light is ON
+
+thread 'main' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)
 ```
 
 ## License
