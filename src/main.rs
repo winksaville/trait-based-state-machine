@@ -7,13 +7,29 @@ type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
 
 impl PartialEq for StateRef<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self == other
+        println!("eq:+");
+        let s = self;
+        println!("eq: s={:p} *s={:p}", s, *s);
+        let o = other;
+        println!("eq: o={:p} *o={:p}", o, *o);
+        let r = std::ptr::eq(*s, *o);
+        //std::process::abort();
+        //let r = *s == *o;
+        println!("eq:- r={}", r);
+
+        r
     }
 
     fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
+        println!("ne:+");
+        let r = !self.eq(other);
+        println!("ne:- r={}", r);
+
+        r
     }
 }
+
+impl Eq for StateRef<'_> {}
 
 enum Protocol1 {
     On,
@@ -31,6 +47,7 @@ struct StateOff;
 
 impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
     fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        println!("StateOff:+ sm.current_state={:p}", sm.current_state);
         match msg {
             Protocol1::On | Protocol1::Toggle => {
                 sm.current_state = &StateOn;
@@ -38,6 +55,7 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
             }
             Protocol1::Off => (),
         }
+        println!("StateOff:- sm.current_state={:p}", sm.current_state);
     }
 }
 
@@ -46,6 +64,7 @@ struct StateOn;
 
 impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
     fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        println!("StateOn:+ sm.current_state={:p}", sm.current_state);
         match msg {
             Protocol1::Off | Protocol1::Toggle => {
                 sm.current_state = &StateOff;
@@ -53,6 +72,7 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
             }
             Protocol1::On => (),
         }
+        println!("StateOn:- sm.current_state={:p}", sm.current_state);
     }
 }
 
@@ -74,4 +94,5 @@ fn main() {
 
     // Validate
     assert!(switch.current_state == &StateOn);
+    assert!(switch.current_state != &StateOff);
 }
