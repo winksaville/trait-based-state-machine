@@ -3,9 +3,11 @@ pub trait State<SM> {
     fn process(&self, sm: &mut SM);
 }
 
+type StateRef<'a> = &'a dyn State<SwitchSm<'a>>;
+
 // Switch state machine
 struct SwitchSm<'a> {
-    current_state: &'a dyn State<SwitchSm<'a>>,
+    current_state: StateRef<'a>,
     light_on: bool,
 }
 
@@ -15,7 +17,7 @@ struct StateOff;
 impl<'a> State<SwitchSm<'a>> for StateOff {
     fn process(&self, sm: &mut SwitchSm<'a>) {
         sm.light_on = false;
-        println!("light is off");
+        println!("StateOff: light_on is {}", sm.light_on);
     }
 }
 
