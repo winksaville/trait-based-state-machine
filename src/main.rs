@@ -1,9 +1,16 @@
 // Trait for processing actions in a State
-pub trait State<SM> {
-    fn process(&self, sm: &mut SM);
+pub trait State<SM, P> {
+    fn process(&self, sm: &mut SM, msg: &P);
 }
 
-type StateRef<'a> = &'a dyn State<SwitchSm<'a>>;
+type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
+
+#[allow(unused)]
+enum Protocol1 {
+    On,
+    Off,
+    Toggle,
+}
 
 // Switch state machine
 struct SwitchSm<'a> {
@@ -14,9 +21,12 @@ struct SwitchSm<'a> {
 // State off
 struct StateOff;
 
-impl<'a> State<SwitchSm<'a>> for StateOff {
-    fn process(&self, sm: &mut SwitchSm<'a>) {
-        sm.light_on = false;
+impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
+    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        match msg {
+            Protocol1::On | Protocol1::Toggle => sm.light_on = true,
+            Protocol1::Off => (),
+        }
         println!("StateOff: light_on is {}", sm.light_on);
     }
 }
@@ -31,9 +41,12 @@ fn main() {
         light_on: false,
     };
 
+    // Create Message
+    let msg = Protocol1::On;
+
     // Process
-    switch.current_state.process(&mut switch);
+    switch.current_state.process(&mut switch, &msg);
 
     // Validate
-    assert!(!switch.light_on);
+    assert!(switch.light_on);
 }
