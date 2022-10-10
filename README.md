@@ -11,10 +11,11 @@ is in branch [return sm from process](https://github.com/winksaville/trait-based
 After the above post, bruh![moments] posted a second simpler suggestion which needs only one
 [explicit lifetime](https://discord.com/channels/273534239310479360/1028428961937641592/1028458436096163840).
 
-I've now created a more complete state machine, it has actually two
-states and also processes messages On, Off and Toggle messages. I also
+I've now created a more complete state machine, it actually has two
+states and also processes On, Off and Toggle messages. I also
 removed `SwitchSm::light_on` and just use `SwitchSm::current_state` to
-know if the light is on or off:
+know if the light is on or off. I did run into a problem with the `PartialEq`
+code. And again [bruh![moments]]():
 ```
 // Trait for processing actions in a State
 pub trait State<SM, P> {
@@ -25,13 +26,15 @@ type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
 
 impl PartialEq for StateRef<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self == other
+        std::ptr::eq(*self, *other)
     }
 
     fn ne(&self, other: &Self) -> bool {
         !self.eq(other)
     }
 }
+
+impl Eq for StateRef<'_> {}
 
 enum Protocol1 {
     On,
@@ -49,6 +52,7 @@ struct StateOff;
 
 impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
     fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        //println!("StateOff:+ sm.current_state={:p}", sm.current_state);
         match msg {
             Protocol1::On | Protocol1::Toggle => {
                 sm.current_state = &StateOn;
@@ -56,6 +60,7 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
             }
             Protocol1::Off => (),
         }
+        //println!("StateOff:- sm.current_state={:p}", sm.current_state);
     }
 }
 
@@ -64,6 +69,7 @@ struct StateOn;
 
 impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
     fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        //println!("StateOn:+ sm.current_state={:p}", sm.current_state);
         match msg {
             Protocol1::Off | Protocol1::Toggle => {
                 sm.current_state = &StateOff;
@@ -71,6 +77,7 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
             }
             Protocol1::On => (),
         }
+        //println!("StateOn:- sm.current_state={:p}", sm.current_state);
     }
 }
 
@@ -92,22 +99,8 @@ fn main() {
 
     // Validate
     assert!(switch.current_state == &StateOn);
+    assert!(switch.current_state != &StateOff);
 }
-```
-
-But if I have the `assert!` enabled the stack overflows:
-```
-$ cargo run
-   Compiling trait-based-state-machine v0.3.0 (/home/wink/prgs/rust/myrepos/trait-based-state-machine)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.27s
-     Running `target/debug/trait-based-state-machine`
-StateOff: light is ON
-StateOn:  light is OFF
-StateOff: light is ON
-
-thread 'main' has overflowed its stack
-fatal runtime error: stack overflow
-Aborted (core dumped)
 ```
 
 ## License
