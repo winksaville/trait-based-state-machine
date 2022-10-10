@@ -8,16 +8,90 @@ and using [bruh![moments] two lifetime suggestion](https://discord.com/channels/
 it does work! This is much better than my original solution which
 is in branch [return sm from process](https://github.com/winksaville/trait-based-state-machine/tree/return-sm-from-process).
 
-After the above post, he posted a second simpler suggestion which needs only one
+After the above post, bruh![moments] posted a second simpler suggestion which needs only one
 [explicit lifetime](https://discord.com/channels/273534239310479360/1028428961937641592/1028458436096163840).
 
+I've now created a more complete state machine, it has actually two
+states and also processes messages On, Off and Toggle messages. I also
+removed `SwitchSm::light_on` and just use `SwitchSm::current_state` to
+know if the light is on or off:
+```
+// Trait for processing actions in a State
+pub trait State<SM, P> {
+    fn process(&self, sm: &mut SM, msg: &P);
+}
 
+type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
+
+enum Protocol1 {
+    On,
+    Off,
+    Toggle,
+}
+
+// Switch state machine
+struct SwitchSm<'a> {
+    current_state: StateRef<'a>,
+}
+
+// State off
+struct StateOff;
+
+impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
+    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        match msg {
+            Protocol1::On | Protocol1::Toggle => {
+                sm.current_state = &StateOn;
+                println!("StateOff: light is ON");
+            }
+            Protocol1::Off => (),
+        }
+    }
+}
+
+// State on
+struct StateOn;
+
+impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
+    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        match msg {
+            Protocol1::Off | Protocol1::Toggle => {
+                sm.current_state = &StateOff;
+                println!("StateOn:  light is OFF");
+            }
+            Protocol1::On => (),
+        }
+
+    }
+}
+
+fn main() {
+    // Create switch state machine
+    let mut switch = SwitchSm {
+        current_state: &StateOff,
+    };
+
+    // Create Message
+    let msg_off = Protocol1::Off;
+    let msg_on = Protocol1::On;
+    let msg_toggle = Protocol1::Toggle;
+
+    // Process
+    switch.current_state.process(&mut switch, &msg_on);
+    switch.current_state.process(&mut switch, &msg_off);
+    switch.current_state.process(&mut switch, &msg_toggle);
+}
+```
+
+And it runs just fine:
 ```
 $ cargo run
-   Compiling trait-based-state-machine v0.2.0 (/home/wink/prgs/rust/myrepos/trait-based-state-machine)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.27s
+   Compiling trait-based-state-machine v0.3.0 (/home/wink/prgs/rust/myrepos/trait-based-state-machine)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.13s
      Running `target/debug/trait-based-state-machine`
-light is off
+StateOff: light is ON
+StateOn:  light is OFF
+StateOff: light is ON
 ```
 
 ## License

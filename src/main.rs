@@ -5,7 +5,6 @@ pub trait State<SM, P> {
 
 type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
 
-#[allow(unused)]
 enum Protocol1 {
     On,
     Off,
@@ -15,7 +14,6 @@ enum Protocol1 {
 // Switch state machine
 struct SwitchSm<'a> {
     current_state: StateRef<'a>,
-    light_on: bool,
 }
 
 // State off
@@ -24,29 +22,43 @@ struct StateOff;
 impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
     fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
         match msg {
-            Protocol1::On | Protocol1::Toggle => sm.light_on = true,
+            Protocol1::On | Protocol1::Toggle => {
+                sm.current_state = &StateOn;
+                println!("StateOff: light is ON");
+            }
             Protocol1::Off => (),
         }
-        println!("StateOff: light_on is {}", sm.light_on);
+    }
+}
+
+// State on
+struct StateOn;
+
+impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
+    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+        match msg {
+            Protocol1::Off | Protocol1::Toggle => {
+                sm.current_state = &StateOff;
+                println!("StateOn:  light is OFF");
+            }
+            Protocol1::On => (),
+        }
     }
 }
 
 fn main() {
-    // Create state off
-    let state_off = StateOff;
-
     // Create switch state machine
     let mut switch = SwitchSm {
-        current_state: &state_off,
-        light_on: false,
+        current_state: &StateOff,
     };
 
-    // Create Message
-    let msg = Protocol1::On;
+    // Create Messages
+    let msg_off = Protocol1::Off;
+    let msg_on = Protocol1::On;
+    let msg_toggle = Protocol1::Toggle;
 
     // Process
-    switch.current_state.process(&mut switch, &msg);
-
-    // Validate
-    assert!(switch.light_on);
+    switch.current_state.process(&mut switch, &msg_on);
+    switch.current_state.process(&mut switch, &msg_off);
+    switch.current_state.process(&mut switch, &msg_toggle);
 }
