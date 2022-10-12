@@ -1,26 +1,28 @@
+//#[feature(core::intrinsics)]
+
 // Trait for processing actions in a State
-pub trait State<SM, P> {
-    fn process(&self, sm: &mut SM, msg: &P);
+pub trait State<SM> {
+    fn process(&self, sm: &mut SM);
 }
 
-type StateRef<'a> = &'a dyn State<SwitchSm<'a>, Protocol1>;
+type StateRef<'a> = &'a dyn State<SwitchSm<'a>>;
 
 impl PartialEq for StateRef<'_> {
+    #[inline(never)]
     fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(*self, *other)
+        //std::ptr::eq(*self, *other)
+        let r = std::ptr::eq(*self, *other);
+        //println!("*self={:p}", *self);
+        //println!("*other={:p}", *other);
+        //println!("r={}", r);
+        //println!("r={r} self={self:p} *self={:p} other={other:p} *other={:p}", *self, *other);
+        r
     }
 
+    #[inline(never)]
     fn ne(&self, other: &Self) -> bool {
         !self.eq(other)
     }
-}
-
-impl Eq for StateRef<'_> {}
-
-enum Protocol1 {
-    On,
-    Off,
-    Toggle,
 }
 
 // Switch state machine
@@ -28,19 +30,23 @@ struct SwitchSm<'a> {
     current_state: StateRef<'a>,
 }
 
+impl<'a> SwitchSm<'a> {
+    fn new() -> Self {
+        SwitchSm {
+            current_state: &StateOff,
+        }
+    }
+}
+
 // State off
 struct StateOff;
 
-impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
-    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+impl<'a> State<SwitchSm<'a>> for StateOff {
+    #[inline(never)]
+    fn process(&self, sm: &mut SwitchSm<'a>) {
         //println!("StateOff:+ sm.current_state={:p}", sm.current_state);
-        match msg {
-            Protocol1::On | Protocol1::Toggle => {
-                sm.current_state = &StateOn;
-                println!("StateOff: light is ON");
-            }
-            Protocol1::Off => (),
-        }
+        sm.current_state = &StateOn;
+        //println!("StateOn:  light is On");
         //println!("StateOff:- sm.current_state={:p}", sm.current_state);
     }
 }
@@ -48,37 +54,29 @@ impl<'a> State<SwitchSm<'a>, Protocol1> for StateOff {
 // State on
 struct StateOn;
 
-impl<'a> State<SwitchSm<'a>, Protocol1> for StateOn {
-    fn process(&self, sm: &mut SwitchSm<'a>, msg: &Protocol1) {
+impl<'a> State<SwitchSm<'a>> for StateOn {
+    #[inline(never)]
+    fn process(&self, sm: &mut SwitchSm<'a>) {
         //println!("StateOn:+ sm.current_state={:p}", sm.current_state);
-        match msg {
-            Protocol1::Off | Protocol1::Toggle => {
-                sm.current_state = &StateOff;
-                println!("StateOn:  light is OFF");
-            }
-            Protocol1::On => (),
-        }
+        sm.current_state = &StateOff;
+        //println!("StateOn:  light is OFF");
         //println!("StateOn:- sm.current_state={:p}", sm.current_state);
     }
 }
 
 fn main() {
     // Create switch state machine
-    let mut switch = SwitchSm {
-        current_state: &StateOff,
-    };
-
-    // Create Messages
-    let msg_off = Protocol1::Off;
-    let msg_on = Protocol1::On;
-    let msg_toggle = Protocol1::Toggle;
+    //let mut switch = SwitchSm {
+    //    current_state: &StateOff,
+    //};
+    let mut switch = Box::new(SwitchSm::new());
 
     // Process
-    switch.current_state.process(&mut switch, &msg_on);
-    switch.current_state.process(&mut switch, &msg_off);
-    switch.current_state.process(&mut switch, &msg_toggle);
+    switch.current_state.process(&mut switch);
+    //switch.current_state.process(&mut switch);
+    //switch.current_state.process(&mut switch);
 
     // Validate
-    assert!(switch.current_state == &StateOn);
-    assert!(switch.current_state != &StateOff);
+    if switch.current_state == &StateOff { std::process::abort(); };
+    if switch.current_state != &StateOn { std::process::abort(); };
 }
