@@ -19,7 +19,7 @@ impl PartialEq for StateRef<'_> {
         r
     }
 
-    #[inline(never)]
+//    #[inline(never)]
     fn ne(&self, other: &Self) -> bool {
         !self.eq(other)
     }
@@ -65,18 +65,25 @@ impl<'a> State<SwitchSm<'a>> for StateOn {
 }
 
 fn main() {
-    // Create switch state machine
+    // Create switch state machine (Several different ways)
     //let mut switch = SwitchSm {
     //    current_state: &StateOff,
     //};
-    let mut switch = Box::new(SwitchSm::new());
+
+    //let mut switch = Box::new(SwitchSm::new());
+
+    let mut switch = SwitchSm::new();
+    if switch.current_state != &StateOff { std::process::abort(); };
+    if switch.current_state == &StateOff { () } else { std::process::abort(); };
 
     // Process
     switch.current_state.process(&mut switch);
-    //switch.current_state.process(&mut switch);
+    if switch.current_state != &StateOn { std::process::abort(); };
+
+    switch.current_state.process(&mut switch);
+    if switch.current_state != &StateOff { std::process::abort(); };
+
     //switch.current_state.process(&mut switch);
 
     // Validate
-    if switch.current_state == &StateOff { std::process::abort(); };
-    if switch.current_state != &StateOn { std::process::abort(); };
 }
