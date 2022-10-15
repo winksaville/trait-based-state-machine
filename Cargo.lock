@@ -3,5 +3,12 @@
 version = 3
 
 [[package]]
-name = "trait-based-state-machine"
+name = "state"
 version = "0.3.0"
+
+[[package]]
+name = "switchsm"
+version = "0.3.0"
+dependencies = [
+ "state",
+]

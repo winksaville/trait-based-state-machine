@@ -11,11 +11,11 @@
 			"cargo": {
 				"args": [
 					"build",
-					"--bin=trait-based-state-machine",
-					"--package=trait-based-state-machine"
+					"--bin=switchsm",
+					"--package=switchsm"
 				],
 				"filter": {
-					"name": "trait-based-state-machine",
+					"name": "switchsm",
 					"kind": "bin"
 				}
 			},
@@ -30,11 +30,11 @@
 				"args": [
 					"build",
 					"--profile=release-with-debug",
-					"--bin=trait-based-state-machine",
-					"--package=trait-based-state-machine"
+					"--bin=switchsm",
+					"--package=switchsm"
 				],
 				"filter": {
-					"name": "trait-based-state-machine",
+					"name": "switchsm",
 					"kind": "bin"
 				}
 			},
@@ -49,11 +49,11 @@
 				"args": [
 					"build",
 					"--release",
-					"--bin=trait-based-state-machine",
-					"--package=trait-based-state-machine"
+					"--bin=switchsm",
+					"--package=switchsm"
 				],
 				"filter": {
-					"name": "trait-based-state-machine",
+					"name": "switchsm",
 					"kind": "bin"
 				}
 			},
@@ -68,11 +68,11 @@
 				"args": [
 					"test",
 					"--no-run",
-					"--bin=trait-based-state-machine",
-					"--package=trait-based-state-machine"
+					"--bin=switchsm",
+					"--package=switchsm",
 				],
 				"filter": {
-					"name": "trait-based-state-machine",
+					"name": "switchsm",
 					"kind": "bin"
 				}
 			},

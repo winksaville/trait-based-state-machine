@@ -1,0 +1,22 @@
+[package]
+name = "switchsm"
+authors = ["Wink Saville <wink@saville.com>"]
+version = "0.3.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dependencies.state]
+path = "../state"
+
+#[profile.release]
+#lto = true
+#codegen-units = 1
+#panic = "abort"
+#
+#[profile.release-with-debug]
+#inherits = "release"
+#debug = true
+#

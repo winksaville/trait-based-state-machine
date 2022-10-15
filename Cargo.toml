@@ -1,10 +1,20 @@
-[package]
-name = "trait-based-state-machine"
-authors = ["Wink Saville <wink@saville.com>"]
+[workspace]
+members = [
+  "state",
+  "switchsm",
+]
+
+[workspace.package]
 version = "0.3.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = [ "Wink Saville<wink@saville.com>" ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
 
-[dependencies]
-
+[profile.release-with-debug]
+inherits = "release"
+debug = true
